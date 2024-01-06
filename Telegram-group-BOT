@@ -1,0 +1,43 @@
+import telebot
+
+TOKEN = 'YOUR_TELEGRAM_BOT_TOKEN'
+bot = telebot.TeleBot(TOKEN)
+
+gif_lock = False
+photo_lock = False
+
+@bot.message_handler(commands=['lock_gif'])
+def lock_gif(message):
+    global gif_lock
+    gif_lock = True
+    bot.reply_to(message, "GIF sending is now locked in this group.")
+
+@bot.message_handler(commands=['unlock_gif'])
+def unlock_gif(message):
+    global gif_lock
+    gif_lock = False
+    bot.reply_to(message, "GIF sending is now unlocked in this group.")
+
+@bot.message_handler(commands=['lock_photo'])
+def lock_photo(message):
+    global photo_lock
+    photo_lock = True
+    bot.reply_to(message, "Photo sending is now locked in this group.")
+
+@bot.message_handler(commands=['unlock_photo'])
+def unlock_photo(message):
+    global photo_lock
+    photo_lock = False
+    bot.reply_to(message, "Photo sending is now unlocked in this group.")
+
+@bot.message_handler(commands=['list_locks'])
+def list_locks(message):
+    locks_status = f"Lock GIF: {'🔒' if gif_lock else '🔓'}\nLock Photo: {'🔒' if photo_lock else '🔓'}"
+    bot.reply_to(message, locks_status)
+
+@bot.message_handler(content_types=['photo', 'document', 'video', 'animation'])
+def handle_media(message):
+    if (gif_lock and message.content_type == 'animation') or (photo_lock and message.content_type == 'photo'):
+        bot.delete_message(message.chat.id, message.message_id)
+
+bot.polling()
